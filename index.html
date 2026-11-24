@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StructuRéf</title>
+<script>
+// ================== À REMPLIR (2 lignes) ==================
+const SUPABASE_URL = "https://hjuzdrgqbmkkllagvdql.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqdXpkcmdxYm1ra2xsYWd2ZHFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1NDE1OTgsImV4cCI6MjExMTExNzU5OH0.ZaaiLnJXZAqUS7tpdFTMjMoarBcSIrhHPgy68-GmaUU";
+// ==========================================================
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --bleu:#1d4e89; --bleu-clair:#e8f0fa; --gris:#f4f5f7; --texte:#1f2933; --rouge:#c0392b; --orange:#d68910; --vert:#1e8449; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--gris); color:var(--texte); font-size:17px; }
+  header { background:var(--bleu); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { margin:0; font-size:22px; }
+  header button { background:#fff; color:var(--bleu); }
+  main { max-width:900px; margin:0 auto; padding:16px; }
+  .carte { background:#fff; border-radius:10px; padding:16px 18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  h2 { margin-top:0; font-size:20px; color:var(--bleu); }
+  h3 { margin:18px 0 8px; font-size:18px; color:var(--bleu); border-bottom:2px solid var(--bleu-clair); padding-bottom:4px; }
+  input, select, textarea { width:100%; padding:12px; font-size:17px; border:1px solid #c5cbd3; border-radius:8px; margin:6px 0 10px; font-family:inherit; }
+  textarea { min-height:70px; }
+  button { background:var(--bleu); color:#fff; border:none; border-radius:8px; padding:12px 18px; font-size:17px; cursor:pointer; }
+  button.sec { background:var(--bleu-clair); color:var(--bleu); }
+  button.danger { background:#fdecea; color:var(--rouge); padding:8px 12px; font-size:15px; }
+  .msg { color:var(--rouge); }
+  .ok { color:var(--vert); }
+  .info { background:var(--bleu-clair); padding:10px 14px; border-radius:8px; margin-bottom:12px; }
+  .question { padding:12px 0; border-bottom:1px solid #eee; }
+  .notes { display:flex; gap:8px; margin:8px 0; }
+  .notes label { flex:1; text-align:center; border:2px solid #c5cbd3; border-radius:8px; padding:10px 0; font-weight:bold; cursor:pointer; }
+  .notes input { display:none; }
+  .notes label:has(input:checked) { background:var(--bleu); border-color:var(--bleu); color:#fff; }
+  .legende { font-size:14px; color:#5f6b7a; }
+  .barre { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .barre select { flex:1; min-width:200px; margin:0; }
+  .onglets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .onglets button { background:#fff; color:var(--bleu); border:1px solid var(--bleu); }
+  .onglets button.actif { background:var(--bleu); color:#fff; }
+  table { width:100%; border-collapse:collapse; background:#fff; }
+  th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; }
+  th { background:var(--bleu-clair); font-size:15px; }
+  td.num { text-align:center; white-space:nowrap; }
+  tr.theme td { background:#f0f3f7; font-weight:bold; color:var(--bleu); }
+  .ecart-fort { color:#fff; background:var(--rouge); border-radius:6px; padding:2px 8px; font-weight:bold; }
+  .ecart-moyen { color:#fff; background:var(--orange); border-radius:6px; padding:2px 8px; font-weight:bold; }
+  ul.coms { margin:4px 0 10px; padding-left:20px; }
+  ul.coms li { margin:4px 0; }
+  .ligne { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; }
+  .ligne select { width:auto; margin:0; }
+  .petit { font-size:14px; color:#5f6b7a; }
+  .grille { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+  @media (max-width:600px) { .grille { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>StructuRéf</h1>
+  <button id="btnDeconnexion" hidden>Se déconnecter</button>
+</header>
+<main id="app"></main>
+
+<script>
+const app = document.getElementById('app');
+let sb = null;
+let etat = { qid:null, onglet:'resultats', questionnaires:[] };
+
+// ---------- Outils ----------
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const moyenne = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+const fmt = n => n == null ? '–' : n.toFixed(1).replace('.', ',');
+const dateFr = d => d ? d.split('-').reverse().join('/') : '';
+const melange = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const $ = id => document.getElementById(id);
+
+// ---------- Accueil ----------
+function accueil() {
+  $('btnDeconnexion').hidden = true;
+  const codeUrl = new URLSearchParams(location.search).get('code') || '';
+  app.innerHTML = `
+    <section class="carte">
+      <h2>Répondre au questionnaire</h2>
+      <p>Entrez le code que vous avez reçu. Vos réponses sont <b>anonymes</b> : aucun nom, aucune adresse mail n'est enregistré.</p>
+      <input id="code" placeholder="Code" autocapitalize="characters" value="${esc(codeUrl)}">
+      <button id="go">Commencer</button>
+      <p id="msg" class="msg"></p>
+    </section>
+    <section class="carte">
+      <h2>Espace administrateur</h2>
+      <input id="email" type="email" placeholder="Adresse mail">
+      <input id="mdp" type="password" placeholder="Mot de passe">
+      <button id="login">Se connecter</button>
+      <p id="msg2" class="msg"></p>
+    </section>`;
+
+  $('go').onclick = async () => {
+    const code = $('code').value.trim().toUpperCase();
+    if (!code) { $('msg').textContent = 'Entrez un code.'; return; }
+    const { data, error } = await sb.rpc('charger_questionnaire', { p_code: code });
+    if (error) { $('msg').textContent = 'Erreur : ' + error.message; return; }
+    if (!data) { $('msg').textContent = 'Code inconnu ou questionnaire fermé.'; return; }
+    questionnaire(code, data);
+  };
+
+  $('login').onclick = async () => {
+    const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('mdp').value });
+    if (error) { $('msg2').textContent = 'Connexion refusée : vérifiez l\'adresse et le mot de passe.'; return; }
+    admin();
+  };
+}
+
+// ---------- Questionnaire (patron ou employé) ----------
+function questionnaire(code, q) {
+  let html = `<section class="carte">
+    <h2>${esc(q.titre)}</h2>
+    <p class="info">Vous répondez en tant que <b>${q.role === 'patron' ? 'direction' : 'membre du personnel (anonyme)'}</b>.<br>
+    Notez chaque affirmation de 1 à 5 : <b>1</b> = pas du tout d'accord, <b>5</b> = tout à fait d'accord. Le commentaire est facultatif.</p>`;
+  let themePrec = null;
+  q.questions.forEach(x => {
+    if (x.theme !== themePrec) { html += `<h3>${esc(x.theme)}</h3>`; themePrec = x.theme; }
+    html += `<div class="question">
+      <div>${esc(x.texte)}</div>
+      <div class="notes">${[1,2,3,4,5].map(n => `<label><input type="radio" name="n${x.id}" value="${n}">${n}</label>`).join('')}</div>
+      <div class="legende">1 = pas du tout d'accord · 5 = tout à fait d'accord</div>
+      <textarea id="c${x.id}" placeholder="Commentaire (facultatif)"></textarea>
+    </div>`;
+  });
+  html += `<button id="envoyer">Envoyer mes réponses</button> <button id="annuler" class="sec">Annuler</button>
+    <p id="msg" class="msg"></p></section>`;
+  app.innerHTML = html;
+  window.scrollTo(0, 0);
+
+  $('annuler').onclick = accueil;
+  $('envoyer').onclick = async () => {
+    const reps = q.questions.map(x => ({
+      question_id: x.id,
+      note: Number(document.querySelector(`input[name="n${x.id}"]:checked`)?.value || 0),
+      commentaire: $('c' + x.id).value.trim()
+    }));
+    if (reps.some(r => !r.note)) { $('msg').textContent = 'Merci de donner une note à chaque affirmation.'; return; }
+    $('envoyer').disabled = true;
+    const { data, error } = await sb.rpc('envoyer_reponses', { p_code: code, p_reponses: reps });
+    if (error || !data) { $('msg').textContent = 'Envoi impossible. ' + (error ? error.message : ''); $('envoyer').disabled = false; return; }
+    app.innerHTML = `<section class="carte"><h2>Merci !</h2><p class="ok">Vos réponses ont bien été enregistrées, de façon anonyme.</p>
+      <button id="retour" class="sec">Retour à l'accueil</button></section>`;
+    $('retour').onclick = accueil;
+  };
+}
+
+// ---------- Administration ----------
+async function admin() {
+  $('btnDeconnexion').hidden = false;
+  const { data, error } = await sb.from('questionnaires').select('*').order('cree_le', { ascending:false });
+  if (error) { app.innerHTML = `<p class="msg">Erreur : ${esc(error.message)}</p>`; return; }
+  etat.questionnaires = data;
+  if (!etat.qid || !data.find(q => q.id === etat.qid)) etat.qid = data[0]?.id || null;
+
+  const onglets = [['resultats','Résultats'],['commentaires','Commentaires'],['questions','Questions et réglages'],['actions','Actions']];
+  app.innerHTML = `
+    <div class="barre">
+      <select id="selQ">${data.map(q => `<option value="${q.id}" ${q.id === etat.qid ? 'selected' : ''}>${esc(q.titre)}${q.actif ? '' : ' (fermé)'}</option>`).join('')}</select>
+      <button id="nouveauQ" class="sec">+ Nouveau questionnaire</button>
+    </div>
+    <nav class="onglets">${onglets.map(([k,l]) => `<button data-o="${k}" class="${k === etat.onglet ? 'actif' : ''}">${l}</button>`).join('')}</nav>
+    <div id="contenu">Chargement…</div>`;
+
+  $('selQ').onchange = e => { etat.qid = e.target.value; afficherOnglet(); };
+  document.querySelectorAll('.onglets button').forEach(b => b.onclick = () => { etat.onglet = b.dataset.o; admin(); });
+  $('nouveauQ').onclick = async () => {
+    const alea = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+    const { data: n, error: e } = await sb.from('questionnaires')
+      .insert({ titre:'Nouveau questionnaire', code_patron:'P' + alea(), code_employe:'E' + alea() }).select().single();
+    if (e) { alert('Erreur : ' + e.message); return; }
+    etat.qid = n.id; etat.onglet = 'questions'; admin();
+  };
+  afficherOnglet();
+}
+
+async function afficherOnglet() {
+  const c = $('contenu');
+  const q = etat.questionnaires.find(x => x.id === etat.qid);
+  if (!q) { c.innerHTML = '<p class="carte">Aucun questionnaire. Appuyez sur « + Nouveau questionnaire ».</p>'; return; }
+  try {
+    if (etat.onglet === 'resultats') await ongletResultats(c, q);
+    else if (etat.onglet === 'commentaires') await ongletCommentaires(c, q);
+    else if (etat.onglet === 'questions') await ongletQuestions(c, q);
+    else await ongletActions(c, q);
+  } catch (e) { c.innerHTML = `<p class="msg">Erreur : ${esc(e.message)}</p>`; }
+}
+
+async function donnees(qid) {
+  const [qs, parts] = await Promise.all([
+    sb.from('questions').select('*').eq('questionnaire_id', qid).order('ordre'),
+    sb.from('participations').select('id, role').eq('questionnaire_id', qid)
+  ]);
+  if (qs.error) throw qs.error;
+  if (parts.error) throw parts.error;
+  const ids = parts.data.map(p => p.id);
+  let reps = [];
+  if (ids.length) {
+    const r = await sb.from('reponses').select('*').in('participation_id', ids);
+    if (r.error) throw r.error;
+    reps = r.data;
+  }
+  const role = Object.fromEntries(parts.data.map(p => [p.id, p.role]));
+  reps.forEach(r => r.role = role[r.participation_id]);
+  return {
+    questions: qs.data, reps,
+    nbPatron: parts.data.filter(p => p.role === 'patron').length,
+    nbEmp: parts.data.filter(p => p.role === 'employe').length
+  };
+}
+
+// ----- Résultats -----
+async function ongletResultats(c, q) {
+  const d = await donnees(q.id);
+  const assez = d.nbEmp >= q.seuil_min;
+  const lignes = d.questions.map(x => {
+    const rq = d.reps.filter(r => r.question_id === x.id && r.note);
+    const p = moyenne(rq.filter(r => r.role === 'patron').map(r => r.note));
+    const e = assez ? moyenne(rq.filter(r => r.role === 'employe').map(r => r.note)) : null;
+    return { theme:x.theme, texte:x.texte, p, e, ecart: (p != null && e != null) ? e - p : null };
+  });
+
+  let html = `<div class="info">Réponses direction : <b>${d.nbPatron}</b> · Réponses personnel : <b>${d.nbEmp}</b>
+    ${assez ? '' : `<br>La moyenne du personnel reste masquée tant qu'il y a moins de <b>${q.seuil_min}</b> réponses (protection de l'anonymat).`}</div>
+    <table><tr><th>Affirmation</th><th>Direction</th><th>Personnel</th><th>Écart</th></tr>`;
+  let themePrec = null;
+  lignes.forEach(l => {
+    if (l.theme !== themePrec) { html += `<tr class="theme"><td colspan="4">${esc(l.theme)}</td></tr>`; themePrec = l.theme; }
+    let ec = '–';
+    if (l.ecart != null) {
+      const txt = (l.ecart > 0 ? '+' : '') + fmt(l.ecart);
+      const a = Math.abs(l.ecart);
+      ec = a >= 1.5 ? `<span class="ecart-fort">${txt}</span>` : a >= 0.75 ? `<span class="ecart-moyen">${txt}</span>` : txt;
+    }
+    html += `<tr><td>${esc(l.texte)}</td><td class="num">${fmt(l.p)}</td><td class="num">${fmt(l.e)}</td><td class="num">${ec}</td></tr>`;
+  });
+  html += `</table>
+    <p class="petit">Écart = moyenne du personnel − note de la direction. Rouge : écart de 1,5 point ou plus. Orange : 0,75 point ou plus.</p>
+    <button id="export">Exporter en Excel (CSV)</button>`;
+  c.innerHTML = html;
+  $('export').onclick = () => exporterCSV(q.titre, lignes);
+}
+
+function exporterCSV(titre, lignes) {
+  const L = [['Thème','Affirmation','Direction','Personnel','Écart']];
+  lignes.forEach(l => L.push([l.theme, l.texte, fmt(l.p), fmt(l.e), l.ecart == null ? '–' : (l.ecart > 0 ? '+' : '') + fmt(l.ecart)]));
+  const csv = '\ufeff' + L.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  const dt = new Date();
+  const jour = String(dt.getDate()).padStart(2,'0') + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + dt.getFullYear();
+  a.download = `Résultats ${titre.replace(/[\\/:*?"<>|_]/g, ' ')} - ${jour}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ----- Commentaires -----
+async function ongletCommentaires(c, q) {
+  const d = await donnees(q.id);
+  const assez = d.nbEmp >= q.seuil_min;
+  let html = assez
+    ? `<div class="info">Les commentaires du personnel sont affichés dans un ordre aléatoire, pour qu'on ne puisse pas les relier entre eux.</div>`
+    : `<div class="info">Les commentaires du personnel restent masqués tant qu'il y a moins de <b>${q.seuil_min}</b> réponses (actuellement ${d.nbEmp}).</div>`;
+  d.questions.forEach(x => {
+    const pat = d.reps.filter(r => r.question_id === x.id && r.role === 'patron' && r.commentaire);
+    const emp = assez ? melange(d.reps.filter(r => r.question_id === x.id && r.role === 'employe' && r.commentaire)) : [];
+    if (!pat.length && !emp.length) return;
+    html += `<div class="carte"><div class="petit">${esc(x.theme)}</div><b>${esc(x.texte)}</b>
+      ${pat.length ? `<div style="margin-top:8px"><b>Direction :</b><ul class="coms">${pat.map(r => `<li>${esc(r.commentaire)}</li>`).join('')}</ul></div>` : ''}
+      ${emp.length ? `<div><b>Personnel :</b><ul class="coms">${emp.map(r => `<li>${esc(r.commentaire)}</li>`).join('')}</ul></div>` : ''}
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+// ----- Questions et réglages -----
+async function ongletQuestions(c, q) {
+  const { data: qs, error } = await sb.from('questions').select('*').eq('questionnaire_id', q.id).order('ordre');
+  if (error) throw error;
+  const themes = [...new Set(qs.map(x => x.theme))];
+  const lien = location.origin + location.pathname;
+  c.innerHTML = `
+    <section class="carte">
+      <h2>Réglages</h2>
+      <label>Titre</label><input id="titre" value="${esc(q.titre)}">
+      <div class="grille">
+        <div><label>Code direction</label><input id="cp" value="${esc(q.code_patron)}" autocapitalize="characters"></div>
+        <div><label>Code personnel</label><input id="ce" value="${esc(q.code_employe)}" autocapitalize="characters"></div>
+        <div><label>Nombre minimum de réponses du personnel</label><input id="seuil" type="number" min="1" value="${q.seuil_min}"></div>
+        <div><label>Questionnaire ouvert</label><select id="actif"><option value="1" ${q.actif ? 'selected' : ''}>Oui</option><option value="0" ${q.actif ? '' : 'selected'}>Non (fermé)</option></select></div>
+      </div>
+      <button id="sauver">Enregistrer les réglages</button> <span id="msgR"></span>
+      <p class="petit">Lien à envoyer au personnel : ${esc(lien)}?code=${esc(q.code_employe)}</p>
+    </section>
+    <section class="carte">
+      <h2>Questions (${qs.length})</h2>
+      ${qs.map(x => `<div class="ligne"><div><div class="petit">${esc(x.theme)}</div>${esc(x.texte)}</div>
+        <button class="danger" data-suppr="${x.id}">Supprimer</button></div>`).join('') || '<p>Aucune question.</p>'}
+      <h3>Ajouter une question</h3>
+      <label>Thème</label><input id="nTheme" list="listeThemes" placeholder="ex. Organisation">
+      <datalist id="listeThemes">${themes.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+      <label>Affirmation à noter de 1 à 5</label><textarea id="nTexte" placeholder="ex. Les priorités de la semaine sont claires."></textarea>
+      <button id="ajouterQ">Ajouter</button>
+    </section>`;
+
+  $('sauver').onclick = async () => {
+    const maj = {
+      titre: $('titre').value.trim() || 'Sans titre',
+      code_patron: $('cp').value.trim().toUpperCase(),
+      code_employe: $('ce').value.trim().toUpperCase(),
+      seuil_min: Math.max(1, Number($('seuil').value) || 3),
+      actif: $('actif').value === '1'
+    };
+    if (!maj.code_patron || !maj.code_employe || maj.code_patron === maj.code_employe) { $('msgR').innerHTML = '<span class="msg">Les deux codes doivent être remplis et différents.</span>'; return; }
+    const { error: e } = await sb.from('questionnaires').update(maj).eq('id', q.id);
+    if (e) { $('msgR').innerHTML = `<span class="msg">${esc(e.message.includes('duplicate') ? 'Ce code est déjà utilisé par un autre questionnaire.' : e.message)}</span>`; return; }
+    admin();
+  };
+
+  document.querySelectorAll('[data-suppr]').forEach(b => b.onclick = async () => {
+    if (!confirm('Supprimer cette question ? Les réponses déjà données à cette question seront aussi supprimées.')) return;
+    const { error: e } = await sb.from('questions').delete().eq('id', b.dataset.suppr);
+    if (e) { alert(e.message); return; }
+    afficherOnglet();
+  });
+
+  $('ajouterQ').onclick = async () => {
+    const theme = $('nTheme').value.trim(), texte = $('nTexte').value.trim();
+    if (!theme || !texte) { alert('Remplissez le thème et l\'affirmation.'); return; }
+    const ordre = qs.length ? Math.max(...qs.map(x => x.ordre)) + 1 : 1;
+    const { error: e } = await sb.from('questions').insert({ questionnaire_id: q.id, theme, texte, ordre });
+    if (e) { alert(e.message); return; }
+    afficherOnglet();
+  };
+}
+
+// ----- Actions -----
+async function ongletActions(c, q) {
+  const { data: acts, error } = await sb.from('actions').select('*').eq('questionnaire_id', q.id)
+    .order('echeance', { ascending:true, nullsFirst:false });
+  if (error) throw error;
+  const statuts = ['à faire', 'en cours', 'fait'];
+  c.innerHTML = `
+    <section class="carte">
+      <h2>Plan d'actions (${acts.length})</h2>
+      ${acts.map(a => `<div class="ligne">
+        <div><b>${esc(a.titre)}</b><div class="petit">${esc(a.theme || '')}${a.responsable ? ' · ' + esc(a.responsable) : ''}${a.echeance ? ' · pour le ' + dateFr(a.echeance) : ''}</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select data-statut="${a.id}">${statuts.map(s => `<option ${s === a.statut ? 'selected' : ''}>${s}</option>`).join('')}</select>
+          <button class="danger" data-suppra="${a.id}">×</button>
+        </div></div>`).join('') || '<p>Aucune action pour l\'instant.</p>'}
+    </section>
+    <section class="carte">
+      <h2>Ajouter une action</h2>
+      <label>Action</label><input id="aTitre" placeholder="ex. Rédiger la procédure de mise en service">
+      <div class="grille">
+        <div><label>Thème</label><input id="aTheme"></div>
+        <div><label>Responsable</label><input id="aResp"></div>
+        <div><label>Échéance</label><input id="aEch" type="date"></div>
+      </div>
+      <button id="ajouterA">Ajouter</button>
+    </section>`;
+
+  document.querySelectorAll('[data-statut]').forEach(s => s.onchange = async () => {
+    const { error: e } = await sb.from('actions').update({ statut: s.value }).eq('id', s.dataset.statut);
+    if (e) alert(e.message);
+  });
+  document.querySelectorAll('[data-suppra]').forEach(b => b.onclick = async () => {
+    if (!confirm('Supprimer cette action ?')) return;
+    const { error: e } = await sb.from('actions').delete().eq('id', b.dataset.suppra);
+    if (e) { alert(e.message); return; }
+    afficherOnglet();
+  });
+  $('ajouterA').onclick = async () => {
+    const titre = $('aTitre').value.trim();
+    if (!titre) { alert('Décrivez l\'action.'); return; }
+    const { error: e } = await sb.from('actions').insert({
+      questionnaire_id: q.id, titre,
+      theme: $('aTheme').value.trim() || null,
+      responsable: $('aResp').value.trim() || null,
+      echeance: $('aEch').value || null
+    });
+    if (e) { alert(e.message); return; }
+    afficherOnglet();
+  };
+}
+
+// ---------- Démarrage ----------
+$('btnDeconnexion').onclick = async () => { await sb.auth.signOut(); accueil(); };
+
+(async () => {
+  if (SUPABASE_URL.startsWith('COLLEZ') || SUPABASE_ANON_KEY.startsWith('COLLEZ')) {
+    app.innerHTML = '<p class="carte msg">Configuration manquante : remplissez SUPABASE_URL et SUPABASE_ANON_KEY en haut du fichier index.html.</p>';
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data } = await sb.auth.getSession();
+  if (data.session) admin(); else accueil();
+})();
+</script>
+</body>
+</html>
