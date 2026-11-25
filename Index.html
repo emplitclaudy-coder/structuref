@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FroidCare Clim – Votre devis climatisation en ligne</title>
+<script>
+// ================== À REMPLIR (2 lignes) ==================
+const SUPABASE_URL = "https://hjuzdrgqbmkkllagvdql.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ZrzaH37N-5G-oqui_pNcjA_ZKY0ewlB";
+// ==========================================================
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --bleu:#0f3b66; --bleu2:#1d5c96; --clair:#e8f1fa; --fond:#f4f6f9; --texte:#1c2733; --gris:#5f6b7a; --vert:#1e8449; --rouge:#b03a2e; --orange:#c96a16; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--fond); color:var(--texte); font-size:17px; line-height:1.45; }
+  header { background:var(--bleu); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:22px; }
+  header .slogan { font-size:14px; opacity:.85; }
+  header button { background:#fff; color:var(--bleu); }
+  main { max-width:960px; margin:0 auto; padding:16px; }
+  .carte { background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  h2 { margin:0 0 12px; font-size:21px; color:var(--bleu); }
+  h3 { margin:16px 0 8px; font-size:18px; color:var(--bleu); }
+  label { display:block; font-weight:600; margin-top:10px; }
+  input, select, textarea { width:100%; padding:11px; font-size:17px; border:1px solid #c5cbd3; border-radius:8px; margin:5px 0 4px; font-family:inherit; background:#fff; }
+  textarea { min-height:80px; }
+  button { background:var(--bleu2); color:#fff; border:none; border-radius:8px; padding:12px 18px; font-size:17px; cursor:pointer; }
+  button.sec { background:var(--clair); color:var(--bleu); }
+  button.petit { padding:7px 12px; font-size:15px; }
+  button.danger { background:#fbeaea; color:var(--rouge); }
+  button:disabled { opacity:.5; }
+  .ligne-boutons { display:flex; gap:10px; justify-content:space-between; margin-top:18px; flex-wrap:wrap; }
+  .grille { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  .grille3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
+  @media (max-width:640px) { .grille, .grille3 { grid-template-columns:1fr; } }
+  .etapes { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .etapes span { flex:1; min-width:90px; text-align:center; padding:8px 4px; border-radius:8px; background:#dde3ea; color:var(--gris); font-size:14px; font-weight:600; }
+  .etapes span.actif { background:var(--bleu2); color:#fff; }
+  .etapes span.fait { background:var(--clair); color:var(--bleu); }
+  .choix { display:flex; gap:10px; flex-wrap:wrap; margin:6px 0; }
+  .choix label { flex:1; min-width:120px; margin:0; font-weight:600; text-align:center; border:2px solid #c5cbd3; border-radius:10px; padding:12px 8px; cursor:pointer; background:#fff; }
+  .choix input { display:none; }
+  .choix label:has(input:checked) { border-color:var(--bleu2); background:var(--clair); color:var(--bleu); }
+  .offres { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
+  .offre { border:2px solid #d5dbe3; border-radius:12px; padding:16px; cursor:pointer; background:#fff; }
+  .offre.choisie { border-color:var(--bleu2); background:var(--clair); }
+  .offre .gamme { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--bleu2); }
+  .offre .nom { font-weight:700; font-size:18px; margin:4px 0; }
+  .prix { font-size:30px; font-weight:800; color:var(--bleu); }
+  .prix small { font-size:14px; font-weight:600; color:var(--gris); }
+  table { width:100%; border-collapse:collapse; }
+  td, th { padding:7px 6px; border-bottom:1px solid #eef0f3; text-align:left; vertical-align:top; font-size:15px; }
+  td.num, th.num { text-align:right; white-space:nowrap; }
+  .info { background:var(--clair); border-radius:10px; padding:12px 14px; margin:10px 0; }
+  .alerte { background:#fff4e5; border-left:4px solid var(--orange); border-radius:8px; padding:10px 14px; margin:10px 0; }
+  .ok { color:var(--vert); font-weight:600; }
+  .msg { color:var(--rouge); font-weight:600; }
+  .petit-texte { font-size:14px; color:var(--gris); }
+  .badge { display:inline-block; font-size:13px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--clair); color:var(--bleu); }
+  .badge.orange { background:#fff0de; color:var(--orange); }
+  .atouts { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-top:10px; }
+  .atouts div { background:var(--clair); border-radius:10px; padding:10px 12px; font-size:15px; }
+  .atouts b { display:block; color:var(--bleu); font-size:17px; }
+  .onglets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .onglets button { background:#fff; color:var(--bleu); border:1px solid var(--bleu2); }
+  .onglets button.actif { background:var(--bleu2); color:#fff; }
+  .edit td input, .edit td select { padding:6px; font-size:14px; margin:0; min-width:60px; }
+  .scroll { overflow-x:auto; }
+  .photos-admin img { max-width:220px; max-height:220px; border-radius:8px; margin:4px; }
+  footer { text-align:center; padding:20px; font-size:14px; color:var(--gris); }
+  footer a { color:var(--gris); }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>FroidCare Clim</h1><div class="slogan">Votre climatisation Mitsubishi Heavy posée, devis en ligne</div></div>
+  <button id="btnDeconnexion" class="petit" hidden>Se déconnecter</button>
+</header>
+<main id="app"></main>
+<footer><a href="#" id="lienAdmin">Espace installateur</a></footer>
+
+<script>
+const app = document.getElementById('app');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const euro = n => (Math.round(n)).toLocaleString('fr-BE') + ' €';
+const euro2 = n => Number(n).toLocaleString('fr-BE', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
+const kw = n => Number(n).toLocaleString('fr-BE', { maximumFractionDigits:1 }) + ' kW';
+let sb = null, cat = null;
+
+// ---------- État du devis ----------
+const devis = {
+  etape: 1,
+  type: 'mono',                         // mono | multi
+  pieces: 2,
+  piece: { usage:'Chambre', surface:25, hauteur:2.5, orientation:'S', vitrage:3, personnes:2, appareils:0 },
+  plus10: true,
+  besoin: null,
+  classe: null,
+  offreId: null,
+  install: { derriere:'oui', position:'sol', longueur:5, beton:'non', alim:'non', gravite:'oui' },
+  photos: { interieur:null, exterieur:null, tableau:null },
+  options: {},
+  contact: { nom:'', email:'', telephone:'', adresse:'', message:'' }
+};
+
+// ---------- Calculs ----------
+const APPORT = { N:50, E:200, S:250, O:250 };
+function calculBesoin(p) {
+  const h = (Number(p.hauteur) || 2.5) / 2.5;
+  const s = Number(p.surface) || 0;
+  const froid = ( (Number(p.vitrage)||0) * APPORT[p.orientation] * 0.6   // vitrage au soleil
+    + s * 6 * h                                                         // pertes murs + vitrage
+    + (Number(p.personnes)||0) * 130                                    // occupants
+    + s * 8                                                             // éclairage LED
+    + (Number(p.appareils)||0) * 150                                    // ordinateurs, TV
+    + (Number(p.personnes)||0) * 142.5 ) * 1.10;                         // air neuf + marge 10 %
+  const chaud = s * 60 * h;
+  return { froid: froid / 1000, chaud: chaud / 1000 };
+}
+function classeConseillee(b) {
+  const classes = [...new Set(cat.offres.filter(o => o.pieces === 1).map(o => o.classe))].sort((a, c) => a - c);
+  for (const c of classes) {
+    const os = cat.offres.filter(o => o.pieces === 1 && o.classe === c);
+    if (Math.min(...os.map(o => o.p_froid)) >= b.froid && Math.min(...os.map(o => o.p_chaud)) >= b.chaud) return c;
+  }
+  return null;
+}
+const tauxTVA = () => devis.plus10 ? cat.reglages.tva_reduite : cat.reglages.tva_normale;
+const ttc = htva => htva * (1 + tauxTVA() / 100);
+const sup = code => cat.supplements.find(s => s.code === code);
+function coutAnnuel(o) {
+  const surf = devis.type === 'mono' ? Number(devis.piece.surface) : 25 * o.pieces;
+  const r = cat.reglages;
+  return (r.besoin_froid_m2 * surf / o.seer + r.besoin_chaud_m2 * surf / o.scop) * r.prix_kwh;
+}
+function offresProposees() {
+  if (devis.type === 'multi') return cat.offres.filter(o => o.pieces === Number(devis.pieces));
+  return cat.offres.filter(o => o.pieces === 1 && o.classe === devis.classe);
+}
+const offreChoisie = () => cat.offres.find(o => o.id === devis.offreId);
+
+function lignesDevis() {
+  const o = offreChoisie();
+  const L = [{ code:null, libelle: o.nom + ' posé', qte:1, prix:o.prix_htva }];
+  const i = devis.install;
+  const ajoute = (code, qte = 1) => { const s = sup(code); if (s && qte > 0) L.push({ code, libelle:s.libelle, qte, unite:s.unite, prix:s.prix_htva * qte, visite:s.visite }); };
+  if (i.derriere === 'non') {
+    if (i.position === 'sol') ajoute('sol');
+    if (i.position === 'hauteur') ajoute('hauteur');
+    if (i.position === 'toiture') ajoute('toiture');
+    const extra = Math.max(0, Math.ceil((Number(i.longueur) || 0) - o.liaison_m));
+    if (extra > 0) ajoute('metre_supp', extra);
+  }
+  if (i.beton === 'oui') ajoute('beton', o.pieces);
+  if (i.alim === 'oui') ajoute('alim');
+  if (i.gravite === 'non') ajoute('pompe', o.pieces);
+  if ((sup('deplacement')?.prix_htva || 0) > 0) ajoute('deplacement');
+  cat.supplements.filter(s => s.type === 'option' && devis.options[s.code]).forEach(s => ajoute(s.code));
+  return L;
+}
+function visiteNecessaire(L) {
+  const i = devis.install;
+  return L.some(l => l.visite) || i.beton === 'je ne sais pas' || (!devis.photos.interieur && !devis.photos.exterieur);
+}
+
+// ---------- Parcours client ----------
+const ETAPES = ['Votre pièce', 'Le modèle', 'L\'installation', 'Photos', 'Votre devis'];
+function bandeau() {
+  return `<div class="etapes">${ETAPES.map((e, i) => `<span class="${i + 1 === devis.etape ? 'actif' : i + 1 < devis.etape ? 'fait' : ''}">${i + 1}. ${e}</span>`).join('')}</div>`;
+}
+function afficher() {
+  window.scrollTo(0, 0);
+  [etape1, etape2, etape3, etape4, etape5][devis.etape - 1]();
+}
+function radios(nom, valeurs, courant) {
+  return `<div class="choix">${valeurs.map(([v, l]) => `<label><input type="radio" name="${nom}" value="${esc(v)}" ${String(v) === String(courant) ? 'checked' : ''}>${l}</label>`).join('')}</div>`;
+}
+const valRadio = nom => document.querySelector(`input[name="${nom}"]:checked`)?.value;
+
+function accueilAtouts() {
+  return `<div class="atouts">
+    <div><b>5 ans de garantie</b>Mitsubishi Heavy Industries</div>
+    <div><b>Prix immédiat</b>sans attendre une visite</div>
+    <div><b>20 ans de métier</b>un frigoriste qualifié pose votre clim</div>
+    <div><b>Un vrai suivi</b>réponse à chaque demande sous 2 jours ouvrables</div>
+  </div>`;
+}
+
+function etape1() {
+  const p = devis.piece;
+  app.innerHTML = `${bandeau()}
+  <section class="carte">
+    <h2>Combien de pièces voulez-vous climatiser ?</h2>
+    ${radios('type', [['mono', 'Une pièce'], ['multi2', 'Deux pièces'], ['multi3', 'Trois pièces']], devis.type === 'mono' ? 'mono' : 'multi' + devis.pieces)}
+    <div id="blocMono">
+      <h3>Votre pièce</h3>
+      <div class="grille">
+        <div><label>Type de pièce</label><select id="usage">${['Chambre', 'Séjour', 'Bureau', 'Cuisine', 'Autre'].map(u => `<option ${u === p.usage ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+        <div><label>Surface (m²)</label><input id="surface" type="number" min="5" max="150" value="${p.surface}"></div>
+        <div><label>Hauteur sous plafond (m)</label><input id="hauteur" type="number" step="0.1" min="2" max="5" value="${p.hauteur}"></div>
+        <div><label>Surface vitrée (m²)</label><input id="vitrage" type="number" step="0.5" min="0" max="40" value="${p.vitrage}"></div>
+        <div><label>Nombre de personnes</label><input id="personnes" type="number" min="0" max="20" value="${p.personnes}"></div>
+        <div><label>Ordinateurs, TV…</label><input id="appareils" type="number" min="0" max="20" value="${p.appareils}"></div>
+      </div>
+      <label>Orientation des fenêtres</label>
+      ${radios('orientation', [['N', 'Nord'], ['E', 'Est'], ['S', 'Sud'], ['O', 'Ouest']], p.orientation)}
+    </div>
+    <div id="blocMulti" class="info">Un multi-split relie plusieurs unités intérieures de 2,5 kW à une seule unité extérieure. Il convient pour des pièces jusqu'à environ 25 m² chacune. Pour des pièces plus grandes, nous vous recontacterons.</div>
+    <h3>Votre logement a-t-il plus de 10 ans ?</h3>
+    ${radios('plus10', [['oui', 'Oui (TVA 6 %)'], ['non', 'Non (TVA 21 %)']], devis.plus10 ? 'oui' : 'non')}
+    <div class="ligne-boutons"><span></span><button id="suivant">Voir les modèles →</button></div>
+  </section>
+  <section class="carte"><h2>Pourquoi FroidCare Clim ?</h2>${accueilAtouts()}</section>`;
+
+  const majType = () => {
+    const t = valRadio('type');
+    $('blocMono').hidden = t !== 'mono';
+    $('blocMulti').hidden = t === 'mono';
+  };
+  document.querySelectorAll('input[name="type"]').forEach(r => r.onchange = majType);
+  majType();
+
+  $('suivant').onclick = () => {
+    const t = valRadio('type');
+    devis.type = t === 'mono' ? 'mono' : 'multi';
+    devis.pieces = t === 'multi3' ? 3 : 2;
+    devis.plus10 = valRadio('plus10') === 'oui';
+    if (devis.type === 'mono') {
+      Object.assign(devis.piece, {
+        usage: $('usage').value, surface: Number($('surface').value), hauteur: Number($('hauteur').value),
+        vitrage: Number($('vitrage').value), personnes: Number($('personnes').value), appareils: Number($('appareils').value),
+        orientation: valRadio('orientation') || 'S'
+      });
+      if (!(devis.piece.surface > 0)) { alert('Indiquez la surface de la pièce.'); return; }
+      devis.besoin = calculBesoin(devis.piece);
+      devis.classe = classeConseillee(devis.besoin);
+    }
+    const prop = devis.type === 'mono' && devis.classe === null ? [] : offresProposees();
+    if (!prop.find(o => o.id === devis.offreId)) devis.offreId = prop[0]?.id || null;
+    devis.etape = 2; afficher();
+  };
+}
+
+function etape2() {
+  let entete = '';
+  if (devis.type === 'mono') {
+    const b = devis.besoin;
+    entete = `<div class="info">Besoin estimé pour votre ${esc(devis.piece.usage.toLowerCase())} de ${devis.piece.surface} m² : <b>${kw(b.froid)} en froid</b> et <b>${kw(b.chaud)} en chaud</b>.
+      ${devis.classe ? `Nous vous conseillons la puissance <b>${kw(devis.classe / 10)}</b>.` : ''}</div>`;
+    if (!devis.classe) {
+      app.innerHTML = `${bandeau()}<section class="carte"><h2>Un projet sur mesure</h2>${entete}
+        <div class="alerte">Votre pièce demande plus de puissance que nos modèles muraux standard. Nous vous proposerons une solution adaptée après une visite technique gratuite.</div>
+        <div class="ligne-boutons"><button class="sec" id="retour">← Modifier ma pièce</button></div></section>`;
+      $('retour').onclick = () => { devis.etape = 1; afficher(); };
+      return;
+    }
+  }
+  const prop = offresProposees();
+  const classes = [...new Set(cat.offres.filter(o => o.pieces === 1).map(o => o.classe))].sort((a, c) => a - c);
+  let comparaison = '';
+  const std = prop.find(o => o.gamme === 'Standard'), conf = prop.find(o => o.gamme === 'Confort');
+  if (std && conf) {
+    const eco = coutAnnuel(std) - coutAnnuel(conf);
+    const diff = ttc(conf.prix_htva) - ttc(std.prix_htva);
+    comparaison = eco > 0 ? `<div class="info">Le modèle Confort coûte <b>${euro(diff)}</b> de plus à l'achat et consomme moins : environ <b>${euro(eco)} d'économie par an</b>, soit un surcoût remboursé en <b>${(diff / eco).toLocaleString('fr-BE', { maximumFractionDigits:1 })} ans</b> et environ <b>${euro(eco * 15 - diff)}</b> gagnés sur 15 ans.</div>` : '';
+  }
+  app.innerHTML = `${bandeau()}
+  <section class="carte">
+    <h2>Choisissez votre modèle</h2>
+    ${entete}
+    ${devis.type === 'mono' ? `<label>Puissance</label><select id="classe">${classes.map(c => `<option value="${c}" ${c === devis.classe ? 'selected' : ''}>${kw(c / 10)}${c === classeConseillee(devis.besoin) ? ' (conseillée)' : ''}</option>`).join('')}</select>` : ''}
+    <div class="offres" style="margin-top:12px">
+      ${prop.map(o => `<div class="offre ${o.id === devis.offreId ? 'choisie' : ''}" data-id="${o.id}">
+        <div class="gamme">${esc(o.gamme)}</div>
+        <div class="nom">${esc(o.nom)}</div>
+        <div class="prix">${euro(ttc(o.prix_htva))} <small>TTC posé, TVA ${tauxTVA()} %</small></div>
+        <table>
+          <tr><td>Puissance froid / chaud</td><td class="num">${kw(o.p_froid)} / ${kw(o.p_chaud)}</td></tr>
+          <tr><td>Efficacité SEER / SCOP</td><td class="num">${String(o.seer).replace('.', ',')} / ${String(o.scop).replace('.', ',')}</td></tr>
+          <tr><td>Bruit intérieur</td><td class="num">dès ${o.bruit_int} dB(A)</td></tr>
+          <tr><td>Bruit extérieur</td><td class="num">${o.bruit_ext} dB(A)</td></tr>
+          <tr><td>Électricité par an (estimation)</td><td class="num">${euro(coutAnnuel(o))}</td></tr>
+          <tr><td>Garantie</td><td class="num">${esc(o.garantie || '')}</td></tr>
+        </table>
+      </div>`).join('') || '<p>Aucun modèle disponible pour ce choix.</p>'}
+    </div>
+    ${comparaison}
+    <p class="petit-texte"><b>Inclus :</b> unité intérieure et extérieure, télécommande, ${prop[0] ? prop[0].liaison_m + ' m de liaison frigorifique isolée' + (prop[0].pieces > 1 ? ' (au total)' : '') : 'liaison frigorifique'}, console murale, goulotte, câble de liaison, câble d'alimentation de l'unité extérieure, évacuation des condensats, mise en service. Pose dos à dos, unité extérieure fixée au mur à hauteur d'homme.</p>
+    <div class="ligne-boutons"><button class="sec" id="retour">← Retour</button><button id="suivant" ${prop.length ? '' : 'disabled'}>Continuer →</button></div>
+  </section>`;
+  document.querySelectorAll('.offre').forEach(d => d.onclick = () => { devis.offreId = d.dataset.id; etape2(); });
+  if ($('classe')) $('classe').onchange = e => { devis.classe = Number(e.target.value); devis.offreId = offresProposees()[0]?.id; etape2(); };
+  $('retour').onclick = () => { devis.etape = 1; afficher(); };
+  $('suivant').onclick = () => { if (!devis.offreId) return; devis.etape = 3; afficher(); };
+}
+
+function etape3() {
+  const i = devis.install;
+  const o = offreChoisie();
+  app.innerHTML = `${bandeau()}
+  <section class="carte">
+    <h2>Votre installation</h2>
+    <h3>L'unité extérieure peut-elle être fixée sur le mur, juste derrière l'unité intérieure, à hauteur d'homme ?</h3>
+    ${radios('derriere', [['oui', 'Oui'], ['non', 'Non']], i.derriere)}
+    <div id="blocNon">
+      <label>Où sera placée l'unité extérieure ?</label>
+      ${radios('position', [['sol', 'Au sol'], ['mur', 'Sur un autre mur'], ['hauteur', 'En hauteur'], ['toiture', 'Sur le toit']], i.position)}
+      <label>Longueur estimée entre l'unité intérieure et l'unité extérieure (m)</label>
+      <input id="longueur" type="number" min="1" max="50" value="${i.longueur}">
+      <div class="petit-texte">${o.liaison_m} m sont inclus. Au-delà : ${euro(ttc(sup('metre_supp')?.prix_htva || 0))} TTC par mètre.</div>
+    </div>
+    <h3>Le mur à traverser est-il en béton ?</h3>
+    ${radios('beton', [['non', 'Non (brique, bloc, bois)'], ['oui', 'Oui, béton'], ['je ne sais pas', 'Je ne sais pas']], i.beton)}
+    <h3>Faut-il tirer une alimentation électrique depuis le tableau ?</h3>
+    ${radios('alim', [['non', 'Non, je m\'en occupe'], ['oui', 'Oui, à prévoir']], i.alim)}
+    <h3>L'eau de condensation peut-elle s'écouler naturellement vers l'extérieur (en pente) ?</h3>
+    ${radios('gravite', [['oui', 'Oui'], ['non', 'Non, il faut une pompe']], i.gravite)}
+    <div class="ligne-boutons"><button class="sec" id="retour">← Retour</button><button id="suivant">Continuer →</button></div>
+  </section>`;
+  const maj = () => { $('blocNon').hidden = valRadio('derriere') !== 'non'; };
+  document.querySelectorAll('input[name="derriere"]').forEach(r => r.onchange = maj);
+  maj();
+  const lire = () => Object.assign(i, {
+    derriere: valRadio('derriere'), position: valRadio('position') || 'sol', longueur: Number($('longueur').value) || 0,
+    beton: valRadio('beton'), alim: valRadio('alim'), gravite: valRadio('gravite')
+  });
+  $('retour').onclick = () => { lire(); devis.etape = 2; afficher(); };
+  $('suivant').onclick = () => { lire(); devis.etape = 4; afficher(); };
+}
+
+function etape4() {
+  const f = devis.photos;
+  const champ = (cle, titre, aide) => `<div class="carte" style="box-shadow:none;border:1px solid #e1e5ea">
+    <b>${titre}</b><div class="petit-texte">${aide}</div>
+    <input type="file" accept="image/*" id="ph_${cle}">
+    <div class="petit-texte">${f[cle] ? '✓ ' + esc(f[cle].name) : ''}</div></div>`;
+  app.innerHTML = `${bandeau()}
+  <section class="carte">
+    <h2>Vos photos</h2>
+    <p>Avec de bonnes photos, nous pouvons confirmer votre devis <b>sans visite sur place</b>.</p>
+    ${champ('interieur', 'Emplacement de l\'unité intérieure', 'Le mur où vous souhaitez la climatisation, avec un peu de recul.')}
+    ${champ('exterieur', 'Emplacement de l\'unité extérieure', 'Le mur extérieur (ou le sol) où viendrait l\'unité extérieure.')}
+    ${champ('tableau', 'Votre tableau électrique', 'Porte ouverte, pour voir les disjoncteurs.')}
+    <div class="petit-texte">Photos de 10 Mo maximum. Sans photo, une visite technique gratuite sera planifiée.</div>
+    <div class="ligne-boutons"><button class="sec" id="retour">← Retour</button><button id="suivant">Voir mon devis →</button></div>
+  </section>`;
+  ['interieur', 'exterieur', 'tableau'].forEach(k => $('ph_' + k).onchange = e => {
+    const fichier = e.target.files[0];
+    if (fichier && fichier.size > 10 * 1024 * 1024) { alert('Cette photo dépasse 10 Mo.'); e.target.value = ''; return; }
+    f[k] = fichier || null; etape4();
+  });
+  $('retour').onclick = () => { devis.etape = 3; afficher(); };
+  $('suivant').onclick = () => { devis.etape = 5; afficher(); };
+}
+
+function etape5() {
+  const o = offreChoisie();
+  const L = lignesDevis();
+  const total = L.filter(l => l.unite !== 'an').reduce((a, l) => a + l.prix, 0);
+  const annuel = L.filter(l => l.unite === 'an');
+  const visite = visiteNecessaire(L);
+  const c = devis.contact;
+  const opts = cat.supplements.filter(s => s.type === 'option');
+  app.innerHTML = `${bandeau()}
+  <section class="carte">
+    <h2>Votre devis indicatif</h2>
+    <table>
+      <tr><th>Description</th><th class="num">Prix TTC</th></tr>
+      ${L.filter(l => l.unite !== 'an').map(l => `<tr><td>${esc(l.libelle)}${l.qte > 1 ? ` (× ${l.qte}${l.unite === 'm' ? ' m' : ''})` : ''}${l.visite ? ' <span class="badge orange">sur visite</span>' : ''}</td><td class="num">${l.visite && !l.prix ? 'à définir' : euro(ttc(l.prix))}</td></tr>`).join('')}
+      <tr><td><b>Total TTC (TVA ${tauxTVA()} %)</b></td><td class="num"><b class="prix" style="font-size:24px">${euro(ttc(total))}</b></td></tr>
+      ${annuel.map(l => `<tr><td>${esc(l.libelle)}</td><td class="num">${euro(ttc(l.prix))} / an</td></tr>`).join('')}
+    </table>
+    ${visite
+      ? `<div class="alerte">Votre installation demande une <b>visite technique gratuite</b> avant l'offre définitive. Le prix final peut être ajusté après la visite.</div>`
+      : `<div class="info">Si vos photos confirment l'installation, vous recevrez votre <b>offre définitive sans visite</b>, sous 2 jours ouvrables.</div>`}
+    ${opts.length ? `<h3>Options</h3>${opts.map(s => `<label style="font-weight:400;display:flex;gap:10px;align-items:center"><input type="checkbox" data-opt="${s.code}" style="width:auto" ${devis.options[s.code] ? 'checked' : ''}> ${esc(s.libelle)} : ${euro(ttc(s.prix_htva))}${s.unite === 'an' ? ' par an' : ''}</label>`).join('')}` : ''}
+    <p class="petit-texte">Prix indicatif établi d'après vos réponses. TVA 6 % réservée aux habitations de plus de 10 ans (21 % sinon). Acompte de 30 % à la signature de l'offre définitive, solde à la mise en service.</p>
+  </section>
+  <section class="carte">
+    <h2>Recevoir mon offre</h2>
+    <div class="grille">
+      <div><label>Nom et prénom *</label><input id="nom" value="${esc(c.nom)}" autocomplete="name"></div>
+      <div><label>Commune *</label><input id="adresse" value="${esc(c.adresse)}" placeholder="ex. 5651 Tarcienne"></div>
+      <div><label>Adresse mail</label><input id="email" type="email" value="${esc(c.email)}" autocomplete="email"></div>
+      <div><label>Téléphone</label><input id="telephone" type="tel" value="${esc(c.telephone)}" autocomplete="tel"></div>
+    </div>
+    <label>Un message, une précision ?</label><textarea id="message">${esc(c.message)}</textarea>
+    <label style="font-weight:400;display:flex;gap:10px;align-items:flex-start;margin-top:12px"><input type="checkbox" id="consent" style="width:auto;margin-top:4px">
+      <span>J'accepte que mes coordonnées et mes photos soient utilisées uniquement pour établir et suivre mon devis. Elles ne sont jamais transmises à des tiers et sont supprimées sur simple demande.</span></label>
+    <p id="msg" class="msg"></p>
+    <div class="ligne-boutons"><button class="sec" id="retour">← Retour</button><button id="envoyer">Envoyer ma demande</button></div>
+  </section>`;
+  const lire = () => Object.assign(c, { nom:$('nom').value.trim(), adresse:$('adresse').value.trim(), email:$('email').value.trim(), telephone:$('telephone').value.trim(), message:$('message').value.trim() });
+  document.querySelectorAll('[data-opt]').forEach(cb => cb.onchange = () => { lire(); devis.options[cb.dataset.opt] = cb.checked; etape5(); });
+  $('retour').onclick = () => { lire(); devis.etape = 4; afficher(); };
+  $('envoyer').onclick = async () => {
+    lire();
+    if (!c.nom || !c.adresse || (!c.email && !c.telephone)) { $('msg').textContent = 'Indiquez votre nom, votre commune et une adresse mail ou un téléphone.'; return; }
+    if (!$('consent').checked) { $('msg').textContent = 'Merci de cocher la case d\'accord pour l\'utilisation de vos données.'; return; }
+    $('envoyer').disabled = true; $('msg').textContent = '';
+    try {
+      const dossier = crypto.randomUUID();
+      const chemins = [];
+      for (const [k, fichier] of Object.entries(devis.photos)) {
+        if (!fichier) continue;
+        const ext = (fichier.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'jpg';
+        const chemin = `${dossier}/${k}.${ext}`;
+        const { error } = await sb.storage.from('photos').upload(chemin, fichier, { contentType: fichier.type || 'image/jpeg' });
+        if (error) throw new Error('Envoi de la photo impossible (' + error.message + ')');
+        chemins.push(chemin);
+      }
+      const { data, error } = await sb.rpc('envoyer_demande', { p: {
+        consentement: true, nom: c.nom, email: c.email, telephone: c.telephone, adresse: c.adresse, message: c.message,
+        plus_10_ans: devis.plus10, offre_id: devis.offreId, visite,
+        piece: devis.type === 'mono' ? { ...devis.piece, besoin_froid_kw: Number(devis.besoin.froid.toFixed(2)), besoin_chaud_kw: Number(devis.besoin.chaud.toFixed(2)) } : { pieces: devis.pieces },
+        installation: devis.install,
+        supplements: L.filter(l => l.code).map(l => ({ code: l.code, qte: l.qte })),
+        photos: chemins
+      } });
+      if (error) throw error;
+      app.innerHTML = `<section class="carte"><h2>Merci, votre demande est envoyée !</h2>
+        <p class="ok">Prix indicatif : ${euro(data.total_ttc)} TTC.</p>
+        <p>${data.visite ? 'Nous vous contactons sous 2 jours ouvrables pour planifier une visite technique gratuite.' : 'Nous vérifions vos photos et vous envoyons votre offre définitive sous 2 jours ouvrables.'}</p>
+        <button class="sec" onclick="location.reload()">Faire un autre devis</button></section>`;
+      window.scrollTo(0, 0);
+    } catch (e) {
+      $('msg').textContent = 'L\'envoi n\'a pas abouti : ' + e.message + '. Réessayez dans un instant.';
