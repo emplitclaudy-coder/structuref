@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FroidCare Clim – Votre devis climatisation en ligne</title>
+<title>SoluIA – Climatisation et intégration de l'IA</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+<link rel="apple-touch-icon" href="favicon-192.png">
+<meta name="theme-color" content="#0E3A5F">
 <script>
 // ================== À REMPLIR (2 lignes) ==================
 const SUPABASE_URL = "https://hjuzdrgqbmkkllagvdql.supabase.co";
@@ -12,13 +17,40 @@ const SUPABASE_ANON_KEY = "sb_publishable_ZrzaH37N-5G-oqui_pNcjA_ZKY0ewlB";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bleu:#0f3b66; --bleu2:#1d5c96; --clair:#e8f1fa; --fond:#f4f6f9; --texte:#1c2733; --gris:#5f6b7a; --vert:#1e8449; --rouge:#b03a2e; --orange:#c96a16; }
+  :root { --bleu:#0E3A5F; --bleu2:#1F6FB2; --cyan:#18A9D8; --clair:#E8F1FA; --fond:#F5F8FC; --texte:#1c2733; --gris:#5f6b7a; --vert:#3BA55C; --vert-texte:#2b7d44; --rouge:#b03a2e; --orange:#c96a16; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--fond); color:var(--texte); font-size:17px; line-height:1.45; }
-  header { background:var(--bleu); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-  header h1 { margin:0; font-size:22px; }
-  header .slogan { font-size:14px; opacity:.85; }
-  header button { background:#fff; color:var(--bleu); }
+  header { background:#fff; border-bottom:4px solid var(--cyan); }
+  .haut { max-width:960px; margin:0 auto; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .marque { display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .marque img { width:58px; height:auto; display:block; }
+  .marque .nom { font-size:30px; font-weight:800; letter-spacing:-.5px; line-height:1; color:var(--bleu); }
+  .marque .nom span { color:var(--cyan); }
+  .marque .slogan { font-size:14px; color:var(--gris); margin-top:3px; }
+  .nav-site { background:var(--bleu); }
+  .nav-site .int { max-width:960px; margin:0 auto; padding:0 10px; display:flex; gap:2px; overflow-x:auto; }
+  .nav-site button { background:transparent; color:#c9dcef; border-radius:0; padding:14px 14px 11px; font-weight:600; border-bottom:4px solid transparent; white-space:nowrap; }
+  .nav-site button.actif { color:#fff; border-bottom-color:var(--cyan); }
+  @media (max-width:500px) { .nav-site button { font-size:15px; padding:12px 10px 9px; } .marque .nom { font-size:26px; } }
+  .rond { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; }
+  .rond svg { width:26px; height:26px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .r-bleu { background:var(--bleu2); } .r-cyan { background:var(--cyan); } .r-vert { background:var(--vert); } .r-marine { background:var(--bleu); }
+  .services { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:14px; }
+  .service { background:#fff; border-radius:14px; padding:18px; box-shadow:0 1px 4px rgba(14,58,95,.10); display:flex; flex-direction:column; gap:10px; }
+  .service h3 { margin:0; }
+  .service p { margin:0; color:var(--gris); font-size:16px; }
+  .hero { background:var(--bleu); color:#fff; border-radius:14px; padding:24px; display:grid; grid-template-columns:1.5fr 1fr; gap:20px; align-items:center; margin-bottom:16px; }
+  .hero h2 { color:#fff; font-size:26px; }
+  .hero p { color:#dbe8f5; margin:0 0 10px; }
+  .hero img { width:100%; border-radius:12px; display:block; }
+  .hero .etiquette { display:inline-block; background:var(--cyan); color:var(--bleu); font-weight:700; font-size:14px; padding:4px 10px; border-radius:20px; margin-bottom:10px; }
+  @media (max-width:700px) { .hero { grid-template-columns:1fr; } }
+  .etapes-ia { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; }
+  .etapes-ia > div { display:flex; gap:12px; align-items:flex-start; }
+  .etapes-ia .num { width:40px; height:40px; border-radius:50%; background:var(--cyan); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  a.bouton { display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:var(--bleu2); color:#fff; border-radius:8px; padding:12px 18px; font-size:17px; font-weight:600; }
+  a.bouton.vert { background:var(--vert); }
+  a.bouton svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   main { max-width:960px; margin:0 auto; padding:16px; }
   .carte { background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
   h2 { margin:0 0 12px; font-size:21px; color:var(--bleu); }
@@ -55,13 +87,13 @@ const SUPABASE_ANON_KEY = "sb_publishable_ZrzaH37N-5G-oqui_pNcjA_ZKY0ewlB";
   td.num, th.num { text-align:right; white-space:nowrap; }
   .info { background:var(--clair); border-radius:10px; padding:12px 14px; margin:10px 0; }
   .alerte { background:#fff4e5; border-left:4px solid var(--orange); border-radius:8px; padding:10px 14px; margin:10px 0; }
-  .ok { color:var(--vert); font-weight:600; }
+  .ok { color:var(--vert-texte); font-weight:600; }
   .msg { color:var(--rouge); font-weight:600; }
   .petit-texte { font-size:14px; color:var(--gris); }
   .badge { display:inline-block; font-size:13px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--clair); color:var(--bleu); }
   .badge.orange { background:#fff0de; color:var(--orange); }
   .atouts { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-top:10px; }
-  .atouts div { background:var(--clair); border-radius:10px; padding:10px 12px; font-size:15px; }
+  .atouts > div { background:var(--clair); border-radius:14px; padding:14px; font-size:15px; display:flex; gap:12px; align-items:center; }
   .atouts b { display:block; color:var(--bleu); font-size:17px; }
   .onglets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
   .onglets button { background:#fff; color:var(--bleu); border:1px solid var(--bleu2); }
@@ -75,9 +107,15 @@ const SUPABASE_ANON_KEY = "sb_publishable_ZrzaH37N-5G-oqui_pNcjA_ZKY0ewlB";
 </head>
 <body>
 <header>
-  <div><h1>FroidCare Clim</h1><div class="slogan">Votre climatisation Mitsubishi Heavy posée, devis en ligne</div></div>
-  <button id="btnDeconnexion" class="petit" hidden>Se déconnecter</button>
+  <div class="haut">
+    <a class="marque" href="#" id="lienAccueil"><img src="icone-soluia.png" alt="SoluIA"><div><div class="nom">Solu<span>IA</span></div><div class="slogan">Climatisation &amp; intelligence artificielle</div></div></a>
+    <button id="btnDeconnexion" class="petit sec" hidden>Se déconnecter</button>
+  </div>
 </header>
+<nav class="nav-site"><div class="int">
+  <button data-vue="clim">Devis climatisation</button>
+  <button data-vue="ia">Intégration de l'IA en entreprise</button>
+</div></nav>
 <main id="app"></main>
 <footer><a href="#" id="lienAdmin">Espace installateur</a></footer>
 
@@ -171,8 +209,11 @@ const ETAPES = ['Votre pièce', 'Le modèle', 'L\'installation', 'Photos', 'Votr
 function bandeau() {
   return `<div class="etapes">${ETAPES.map((e, i) => `<span class="${i + 1 === devis.etape ? 'actif' : i + 1 < devis.etape ? 'fait' : ''}">${i + 1}. ${e}</span>`).join('')}</div>`;
 }
+let erreurCatalogue = '';
 function afficher() {
   window.scrollTo(0, 0);
+  document.querySelectorAll('.nav-site button').forEach(b => b.classList.toggle('actif', b.dataset.vue === 'clim'));
+  if (!cat) { app.innerHTML = `<p class="carte msg">${erreurCatalogue || 'Chargement…'}</p>`; return; }
   [etape1, etape2, etape3, etape4, etape5][devis.etape - 1]();
 }
 function radios(nom, valeurs, courant) {
@@ -180,14 +221,89 @@ function radios(nom, valeurs, courant) {
 }
 const valRadio = nom => document.querySelector(`input[name="${nom}"]:checked`)?.value;
 
+const ICONES = {
+  garantie: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  horloge: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  outil: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  suivi: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  relance: '<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v5"/>',
+  dossier: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  devis: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  taches: '<path d="M10 6h10M10 12h10M10 18h10"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>',
+  formation: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
+  telephone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  cadenas: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
+};
+const icone = (nom, couleur = 'r-bleu') => `<div class="rond ${couleur}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nom]}</svg></div>`;
+const iconeSeule = nom => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nom]}</svg>`;
+
 function accueilAtouts() {
   return `<div class="atouts">
-    <div><b>5 ans de garantie</b>Mitsubishi Heavy Industries</div>
-    <div><b>Prix immédiat</b>sans attendre une visite</div>
-    <div><b>20 ans de métier</b>un frigoriste qualifié pose votre clim</div>
-    <div><b>Un vrai suivi</b>réponse à chaque demande sous 2 jours ouvrables</div>
+    <div>${icone('garantie', 'r-vert')}<div><b>5 ans de garantie</b>Mitsubishi Heavy Industries</div></div>
+    <div>${icone('horloge', 'r-cyan')}<div><b>Prix immédiat</b>sans attendre une visite</div></div>
+    <div>${icone('outil', 'r-marine')}<div><b>20 ans de métier</b>un frigoriste qualifié pose votre clim</div></div>
+    <div>${icone('suivi', 'r-bleu')}<div><b>Un vrai suivi</b>réponse à chaque demande sous 2 jours ouvrables</div></div>
   </div>`;
 }
+
+// ---------- Onglet 2 : intégration de l'IA ----------
+const CONTACT_MAIL = 'claudy.emplit@gmail.com';
+const CONTACT_TEL = '0498 81 75 42';
+function vueIA() {
+  const services = [
+    ['mail', 'r-bleu', 'Tri des mails', 'Vos mails classés automatiquement, les urgences repérées en premier.'],
+    ['relance', 'r-cyan', 'Réponses et relances', 'Réponses types et brouillons préparés par l\'IA, relances programmées pour ne rien oublier.'],
+    ['dossier', 'r-marine', 'Suivi des projets', 'Étapes, documents, échéances et prochaines actions de chaque dossier client, avec un résumé de l\'historique.'],
+    ['devis', 'r-vert', 'Aide aux devis', 'Modèles, descriptifs et métrés préparés à partir de vos notes de visite, relance des devis en attente.'],
+    ['taches', 'r-cyan', 'Tâches quotidiennes', 'La liste du jour établie à partir de vos mails et de vos dossiers, le planning et les rappels.'],
+    ['formation', 'r-bleu', 'Formation', 'Vos équipes formées sur leurs propres cas, pour utiliser l\'IA en autonomie.']
+  ];
+  const sujet = encodeURIComponent('Diagnostic IA gratuit');
+  app.innerHTML = `
+  <section class="hero">
+    <div>
+      <span class="etiquette">Diagnostic gratuit et sans engagement</span>
+      <h2>Intégration de l'IA en entreprise</h2>
+      <p>J'aide les petites entreprises, en particulier les entreprises techniques (installateurs, artisans, bureaux d'études), à gagner du temps au quotidien grâce à l'intelligence artificielle.</p>
+      <p>Des outils simples, construits sur vos propres cas, pour que votre équipe se concentre sur son métier.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <a class="bouton vert" href="mailto:${CONTACT_MAIL}?subject=${sujet}">${iconeSeule('mail')} Demander mon diagnostic</a>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:16px;padding:28px;display:flex;justify-content:center"><img src="icone-soluia.png" alt="Logo SoluIA" style="width:180px;max-width:100%"></div>
+  </section>
+  <section class="carte"><h2>Ce que l'IA peut faire pour vous</h2>
+    <div class="services">${services.map(([ic, c, t, d]) => `<div class="service" style="background:var(--clair);box-shadow:none">${icone(ic, c)}<h3>${t}</h3><p>${d}</p></div>`).join('')}</div>
+  </section>
+  <section class="carte"><h2>Comment ça se passe</h2>
+    <div class="etapes-ia">
+      <div><div class="num">1</div><div><b>Diagnostic gratuit</b><br><span class="petit-texte">Nous regardons ensemble où votre équipe perd du temps : mails, devis, suivi des dossiers.</span></div></div>
+      <div><div class="num">2</div><div><b>Mise en place</b><br><span class="petit-texte">J'installe et je règle des outils adaptés à votre métier et à vos logiciels.</span></div></div>
+      <div><div class="num">3</div><div><b>Formation et suivi</b><br><span class="petit-texte">Votre équipe apprend à s'en servir, et je reste disponible pour ajuster.</span></div></div>
+    </div>
+    <div class="info" style="display:flex;gap:12px;align-items:center;margin-top:16px">${icone('cadenas', 'r-marine')}<div><b>L'IA prépare, vous validez.</b> Vos données restent encadrées par écrit, dans le respect du RGPD.</div></div>
+  </section>
+  <section class="carte"><h2>Parlons de votre entreprise</h2>
+    <p>Le premier diagnostic est <b>gratuit et sans engagement</b>. Contactez-moi :</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="bouton" href="mailto:${CONTACT_MAIL}?subject=${sujet}">${iconeSeule('mail')} ${CONTACT_MAIL}</a>
+      <a class="bouton vert" href="tel:+32498817542">${iconeSeule('telephone')} ${CONTACT_TEL}</a>
+    </div>
+    <p class="petit-texte" style="margin-top:12px">Claudy Emplit · 20 ans de terrain dans le froid et la climatisation, formateur.</p>
+  </section>`;
+}
+
+// ---------- Navigation entre les onglets ----------
+let vue = location.hash === '#ia' ? 'ia' : 'clim';
+function montrerVue(v) {
+  vue = v;
+  document.querySelectorAll('.nav-site button').forEach(b => b.classList.toggle('actif', b.dataset.vue === v));
+  history.replaceState(null, '', v === 'ia' ? '#ia' : location.pathname + location.search);
+  window.scrollTo(0, 0);
+  if (v === 'ia') vueIA(); else afficher();
+}
+document.querySelectorAll('.nav-site button').forEach(b => b.onclick = () => montrerVue(b.dataset.vue));
 
 function etape1() {
   const p = devis.piece;
@@ -213,7 +329,7 @@ function etape1() {
     ${radios('plus10', [['oui', 'Oui (TVA 6 %)'], ['non', 'Non (TVA 21 %)']], devis.plus10 ? 'oui' : 'non')}
     <div class="ligne-boutons"><span></span><button id="suivant">Voir les modèles →</button></div>
   </section>
-  <section class="carte"><h2>Pourquoi FroidCare Clim ?</h2>${accueilAtouts()}</section>`;
+  <section class="carte"><h2>Pourquoi SoluIA ?</h2>${accueilAtouts()}</section>`;
 
   const majType = () => {
     const t = valRadio('type');
@@ -622,6 +738,7 @@ async function adminReglages() {
 }
 
 // ---------- Démarrage ----------
+$('lienAccueil').onclick = e => { e.preventDefault(); devis.etape = 1; montrerVue('clim'); };
 $('lienAdmin').onclick = async e => {
   e.preventDefault();
   const { data } = await sb.auth.getSession();
@@ -635,12 +752,13 @@ $('btnDeconnexion').onclick = async () => { await sb.auth.signOut(); $('btnDecon
     return;
   }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (vue === 'ia') montrerVue('ia');
   const { data, error } = await sb.rpc('catalogue');
-  if (error || !data) { app.innerHTML = `<p class="carte msg">Le catalogue n'a pas pu être chargé${error ? ' : ' + esc(error.message) : ''}.</p>`; return; }
-  cat = data;
+  if (error || !data) erreurCatalogue = `Le catalogue n'a pas pu être chargé${error ? ' : ' + esc(error.message) : ''}.`;
+  else cat = data;
   const { data: s } = await sb.auth.getSession();
-  if (s.session) $('btnDeconnexion').hidden = false;
-  afficher();
+  if (s && s.session) $('btnDeconnexion').hidden = false;
+  montrerVue(vue);
 })();
 </script>
 </body>

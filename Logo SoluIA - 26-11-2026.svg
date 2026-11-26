@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140">
+  <path d="M70 12 L120 41 L120 99 L70 128 L20 99 L20 41 Z" fill="#E8F1FA" stroke="#1F6FB2" stroke-width="7" stroke-linejoin="round"/>
+  <g fill="none" stroke="#18A9D8" stroke-width="6" stroke-linecap="round">
+    <path d="M36 50 H82 a9 9 0 1 0 -9 -9"/>
+    <path d="M36 66 H94 a8 8 0 1 1 -8 8"/>
+    <path d="M44 82 H62"/>
+  </g>
+  <path d="M56 100 l9 9 l20 -20" fill="none" stroke="#3BA55C" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="140" y="88" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="68" fill="#0E3A5F" letter-spacing="-1">Solu<tspan fill="#18A9D8">IA</tspan></text>
+  <text x="143" y="120" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#1F6FB2">Climatisation &amp; intelligence artificielle</text>
+</svg>
